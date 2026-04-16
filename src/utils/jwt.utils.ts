@@ -1,16 +1,16 @@
-// utils/jwt.js
-const jwt = require('jsonwebtoken');
-const jwtConfig = require('../config/jwt');
+// src/utils/jwt.utils.ts
+import jwt, { SignOptions } from 'jsonwebtoken';
+import jwtConfig from '../config/jwt.config';
 
 /**
  * Generate a new JWT token
  * @param {Object} payload - Data to encode in token
  * @returns {string} JWT token
  */
-const generateToken = (payload) => {
+export const generateToken = (payload: object): string => {
   return jwt.sign(payload, jwtConfig.secret, {
     expiresIn: jwtConfig.expiresIn
-  });
+  } as SignOptions);
 };
 
 /**
@@ -18,10 +18,10 @@ const generateToken = (payload) => {
  * @param {Object} payload - Data to encode in token
  * @returns {string} Refresh token
  */
-const generateRefreshToken = (payload) => {
+export const generateRefreshToken = (payload: object): string => {
   return jwt.sign(payload, jwtConfig.secret, {
     expiresIn: jwtConfig.refreshExpiresIn
-  });
+  } as SignOptions);
 };
 
 /**
@@ -29,7 +29,7 @@ const generateRefreshToken = (payload) => {
  * @param {string} token - JWT token to verify
  * @returns {Object} Decoded token payload
  */
-const verifyToken = (token) => {
+export const verifyJwtToken = (token: string): any => {
   try {
     return jwt.verify(token, jwtConfig.secret);
   } catch (error) {
@@ -42,13 +42,6 @@ const verifyToken = (token) => {
  * @param {string} token - JWT token to decode
  * @returns {Object} Decoded token payload
  */
-const decodeToken = (token) => {
+export const decodeToken = (token: string): any => {
   return jwt.decode(token);
-};
-
-module.exports = {
-  generateToken,
-  generateRefreshToken,
-  verifyToken,
-  decodeToken
 };

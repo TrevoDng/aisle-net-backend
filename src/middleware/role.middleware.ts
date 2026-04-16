@@ -1,20 +1,23 @@
+// middleware/role.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 
 export const requireRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.dbUser) {
+    // Check if user exists on request
+    if (!req.user) {
       return res.status(401).json({ 
         success: false, 
         error: { code: 'UNAUTHORIZED', message: 'User not authenticated' } 
       });
     }
     
-    const userRole = req.user.dbUser.role;
+    // Get user role directly from req.user (not req.user.dbUser)
+    const userRole = req.user.role;
     
     if (!roles.includes(userRole)) {
       return res.status(403).json({ 
         success: false, 
-        error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } 
+        error: { code: 'FORBIDDEN', message: 'Insufficient permissions. Required role: ' + roles.join(', ') } 
       });
     }
     

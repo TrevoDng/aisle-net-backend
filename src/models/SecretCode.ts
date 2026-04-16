@@ -1,5 +1,5 @@
 import { DataTypes, Model, type Optional } from 'sequelize';
-import sequelize from '../config/database';
+import sequelize from '../config/database.config';
 
 export interface SecretCodeAttributes {
   id: string;
@@ -7,6 +7,7 @@ export interface SecretCodeAttributes {
   isUsed: boolean;
   expiresAt: Date;
   createdBy: string;
+  assignedEmail: string;
   usedBy?: string;
   usedAt?: Date;
 }
@@ -14,13 +15,14 @@ export interface SecretCodeAttributes {
 export interface SecretCodeCreationAttributes extends Optional<SecretCodeAttributes, 'id' | 'isUsed' | 'usedBy' | 'usedAt'> {}
 
 class SecretCode extends Model<SecretCodeAttributes, SecretCodeCreationAttributes> implements SecretCodeAttributes {
-  public id!: string;
-  public code!: string;
-  public isUsed!: boolean;
-  public expiresAt!: Date;
-  public createdBy!: string;
-  public usedBy!: string;
-  public usedAt!: Date;
+  declare id: string;
+  declare code: string;
+  declare isUsed: boolean;
+  declare expiresAt: Date;
+  declare createdBy: string;
+  declare assignedEmail: string;
+  declare usedBy: string;
+  declare usedAt: Date;
   
   public readonly createdAt!: Date;
 }
@@ -48,9 +50,14 @@ SecretCode.init(
       field: 'expires_at',
     },
     createdBy: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.UUID,
       allowNull: false,
       field: 'created_by',
+    },
+    assignedEmail: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: 'assigned_email',
     },
     usedBy: {
       type: DataTypes.UUID,
@@ -69,5 +76,15 @@ SecretCode.init(
     underscored: true,
   }
 );
+
+// Define associations after model initialization
+import User from './User';
+
+// This establishes the relationship
+SecretCode.belongsTo(User, { 
+  foreignKey: 'createdBy', 
+  as: 'createdByAdmin',
+  targetKey: 'id'
+});
 
 export default SecretCode;

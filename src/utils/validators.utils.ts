@@ -1,3 +1,4 @@
+// validators.utils.ts
 import { z } from 'zod';
 
 export const generateCodeSchema = z.object({
@@ -10,10 +11,11 @@ export const validateCodeSchema = z.object({
 
 export const createEmployeeSchema = z.object({
   code: z.string().min(6).max(20),
-  name: z.string().min(2).max(100),
+  firstName: z.string().min(2).max(100),
+  lastName: z.string().min(2).max(100),
   email: z.string().email(),
   password: z.string().min(8),
-  firebaseUid: z.string(), // Will come from frontend after Firebase registration
+  phone: z.string().optional(),
 });
 
 export const approveEmployeeSchema = z.object({

@@ -1,3 +1,4 @@
+// src/config/database.config.ts
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
@@ -17,7 +18,7 @@ const sequelize = new Sequelize(
   requiredEnv('DB_PASSWORD'),
   {
     host: requiredEnv('DB_HOST'),
-    port: Number(process.env.DB_PORT) || 5432,
+    port: Number(process.env.DB_PORT) || 5433,
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
@@ -29,20 +30,18 @@ const sequelize = new Sequelize(
   }
 );
 
-// Test connection and sync models
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ PostgreSQL connected successfully');
     
-    // Import models and setup associations after connection
-    const { User, SecretCode, AuditLog } = await import('../models');
+    // Import models AFTER connection to avoid circular deps
+    const { User, SecretCode, AuditLog } = await import('../models/index.js');
     
-    // Setup associations
+    // Setup associations (without firebase)
     User.hasMany(SecretCode, { 
       as: 'generatedCodes', 
       foreignKey: 'createdBy',
-      sourceKey: 'firebaseUid',
       constraints: false
     });
     
@@ -58,7 +57,6 @@ const connectDB = async () => {
     SecretCode.belongsTo(User, { 
       as: 'creator', 
       foreignKey: 'createdBy',
-      targetKey: 'firebaseUid',
       constraints: false
     });
     
@@ -71,7 +69,7 @@ const connectDB = async () => {
       foreignKey: 'userId' 
     });
     
-    // Sync models (use { alter: false } in production, true only in development)
+    // Sync models
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
       console.log('✅ Models synced');

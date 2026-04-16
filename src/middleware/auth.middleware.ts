@@ -1,10 +1,9 @@
+// middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
-import { FirebaseService } from '../services/firebaseService';
 import User from '../models/User';
 import logger from '../utils/logger';
-import '../types/express'; // Import the type definitions
-
-const firebaseService = new FirebaseService();
+//import '/types/express-augmentation.d.ts'; // Import the type definitions
+import { verifyJwtToken } from '../utils/jwt.utils';
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,12 +18,14 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
     const token = authHeader.split(' ')[1];
     
-    // Verify token with Firebase
-    const firebaseUser = await firebaseService.verifyIdToken(token);
+    // Verify token using jwt.utils - this will throw if token is 
+    // invalid or expired
+    const decoded = verifyJwtToken(token);
+    //jwt.verify(token, process.env.JWT_SECRET) as { uid: string };
     
     // Get user from database using Sequelize
     const dbUser = await User.findOne({
-      where: { firebaseUid: firebaseUser.uid }
+      where: { id: decoded.id }
     });
     
     if (!dbUser) {
@@ -43,12 +44,9 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     }
     
     // Attach user to request - now guaranteed to exist
-    req.user = {
-      uid: firebaseUser.uid,
-      email: firebaseUser.email,
-      emailVerified: firebaseUser.emailVerified,
-      dbUser,
-    };
+    // I suggest firebase will be replaced with a custom auth system, 
+    // so we can directly use dbUser info from postgres without needing to verify with Firebase
+    req.user = dbUser;
     
     next();
   } catch (error) {

@@ -1,17 +1,32 @@
+// src/app.ts
+//import './types/express-augmentation';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-// app.ts - remove .js extensions
-import adminRoutes from './routes/adminRoutes';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import adminRoutes from './routes/admin.routes';
+import authRoutes from './routes/auth.routes';
 import logger from './utils/logger';
-import { connectDB } from './config/database';
+import { responseMiddleware } from './middleware/response.middleware';
+import setupRoutes from './routes/setup.routes';
+import path from 'path/win32';
+import uploadRoutes from './routes/upload.routes';
+import productRoutes from './routes/product.routes';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
+// Security middleware
+app.use(helmet());
+app.use(compression());
+app.use(morgan('dev'));
+
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -24,22 +39,25 @@ const limiter = rateLimit({
 app.use(cors());
 app.use(express.json());
 app.use(limiter);
+app.use(cookieParser());
+
+app.use(responseMiddleware);
+
+
 
 // Routes
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/setup', setupRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api', uploadRoutes);
+app.use('/api/products', productRoutes);
+
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error', { error: err.message, stack: err.stack });
-  res.status(500).json({
-    success: false,
-    error: { code: 'INTERNAL_SERVER_ERROR', message: 'Something went wrong' }
-  });
 });
 
 // 404 handler
@@ -50,22 +68,13 @@ app.use((req, res) => {
   });
 });
 
-// Connect to database and start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    app.listen(port, () => {
-      logger.info(`Server running on port ${port}`);
-      console.log(`🚀 Server running on http://localhost:${port}`);
-      console.log(`📝 Health check: http://localhost:${port}/health`);
-    });
-  } catch (error) {
-    logger.error('Failed to start server', { error });
-    process.exit(1);
-  }
-};
-
-startServer();
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error('Unhandled error', { error: err.message, stack: err.stack });
+  res.status(500).json({
+    success: false,
+    error: { code: 'INTERNAL_SERVER_ERROR', message: 'Something went wrong' }
+  });
+});
 
 export default app;

@@ -1,3 +1,4 @@
+// src/types/api.types.ts
 export interface AuthRequest {
   email: string;
   password: string;
@@ -22,11 +23,15 @@ export interface ChangePasswordRequest {
 }
 
 export interface ApiResponse<T = any> {
-  status: 'success' | 'error' | 'fail';
+  success: boolean;
   token?: string;
   data?: T;
   message?: string;
-  error?: any;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  }
 }
 
 export interface AuthResponse extends ApiResponse {
