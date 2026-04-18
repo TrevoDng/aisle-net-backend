@@ -10,11 +10,22 @@ import {
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct 
+    deleteProduct, 
+    getPublicApprovedProducts,
+    getPublicProductById
     } from '../controllers/product.controller';
 import { verifyUserToken, requireRole } from '../services/auth.service';
 
 const router = Router();
+
+// ==================== PUBLIC ROUTES (NO AUTH REQUIRED) ====================
+
+// Get approved products for public display (no authentication needed)
+// router.get('/public/approved', getPublicApprovedProducts);
+
+// Get single product by ID (public - only if approved)
+// router.get('/public/:productId', getPublicProductById);
+
 
 // ==================== PROTECTED ROUTES ====================
 
@@ -73,5 +84,6 @@ router.post(
   ],
   rejectProduct
 );
+
 
 export default router;

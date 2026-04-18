@@ -13,9 +13,12 @@ import authRoutes from './routes/auth.routes';
 import logger from './utils/logger';
 import { responseMiddleware } from './middleware/response.middleware';
 import setupRoutes from './routes/setup.routes';
-import path from 'path/win32';
+import path from 'path';
 import uploadRoutes from './routes/upload.routes';
 import productRoutes from './routes/product.routes';
+import suggestionRoutes from './routes/suggestion.routes';
+import enquiryRoutes from './routes/enquiry.routes';
+import publicRoutes from './routes/public.routes';
 
 dotenv.config();
 
@@ -44,15 +47,32 @@ app.use(cookieParser());
 app.use(responseMiddleware);
 
 
-
 // Routes
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// ==================== PUBLIC ROUTES (NO AUTH) ====================
+app.use('/api/public', publicRoutes);
+console.log('✅ Public routes registered at /api/public');
+
+// Use process.cwd() to get the current working directory (project root)
+const uploadsPath = path.join(__dirname, '..', 'uploads');
+console.log(`📁 Serving static files from: ${uploadsPath}`); // Should show: /your-project-root/uploads
+app.use('/uploads', (req, res, next) => {
+  // Set CORP headers for images
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(uploadsPath));
+// Important: In production, we should replace '*' 
+// with your actual frontend domain for security:
+// res.setHeader('Access-Control-Allow-Origin', 'https://your-frontend-domain.com');
 app.use('/api/setup', setupRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/suggestions', suggestionRoutes);
 
 
 // Health check

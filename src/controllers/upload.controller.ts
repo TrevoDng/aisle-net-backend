@@ -25,42 +25,6 @@ const getImageFolderPath = (userId: string, productType: string, productSubType:
   return path.join('uploads', safeUserId, safeProductType, safeProductSubType);
 };
 
-/*
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    //const { userId, productType, productSubType } = req.params;
-    const userIdParam = req.params.userId || req.body.userId;
-    const productTypeParam = req.params.productType || req.body.productType;
-    const productSubTypeParam = req.params.productSubType || req.body.productSubType;
-    
-    const userId = Array.isArray(userIdParam) ? userIdParam[0] : userIdParam;
-    const productType = Array.isArray(productTypeParam) ? productTypeParam[0] : productTypeParam;
-    const productSubType = Array.isArray(productSubTypeParam) ? productSubTypeParam[0] : productSubTypeParam;
-
-    if (!userId || !productType || !productSubType) {
-      return cb(new Error('Missing required fields: userId, productType, productSubType'), '');
-    }
-    
-    const folderPath = getImageFolderPath(userId, productType, productSubType);
-    const fullPath = path.join(process.cwd(), folderPath);
-    
-    await ensureDirectoryExists(fullPath);
-    cb(null, fullPath);
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const randomStr = uuidv4().substring(0, 8);
-    const index = req.body.index || '0';
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension).replace(/[^a-zA-Z0-9]/g, '_');
-    
-    const fileName = `${timestamp}_${randomStr}_${index}_${baseName.substring(0, 30)}${extension}`;
-    cb(null, fileName);
-  }
-});
-*/
-
 // Configure multer storage - TEMP FOLDER FIRST
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
@@ -78,11 +42,11 @@ const storage = multer.diskStorage({
 
 // File filter for images only
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.'));
+    cb(new Error('Invalid file type. Only JPEG, PNG, JPG, WebP, and GIF are allowed.'));
   }
 };
 
@@ -143,32 +107,6 @@ export const uploadProductImage = [
     }, 'Image uploaded successfully');
   })
 ];
-
-/*
-export const uploadProductImage = [
-  upload.single('image'),
-  catchAsync(async (req: Request, res: Response) => {
-    if (!req.file) {
-      return res.error('No image file provided', 400, 'NO_FILE');
-    }
-
-    const { userId, productType, productSubType } = req.body;
-    
-    const imageUrl = getImageUrl(req.file.path);
-    
-    res.success({
-      url: imageUrl,
-      fileName: req.file.filename,
-      filePath: req.file.path,
-      originalName: req.file.originalname,
-      size: req.file.size,
-      userId,
-      productType,
-      productSubType
-    }, 'Image uploaded successfully');
-  })
-];
-*/
 
 // Delete product image
 export const deleteProductImage = catchAsync(async (req: Request, res: Response) => {

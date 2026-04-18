@@ -270,3 +270,41 @@ export const rejectProduct = catchAsync(async (req: Request, res: Response) => {
 
   res.success({ product }, 'Product rejected successfully');
 });
+
+// ==================== PUBLIC CONTROLLERS (NO AUTH) ====================
+
+export const getPublicApprovedProducts = catchAsync(async (req: Request, res: Response) => {
+  const { limit = 100, offset = 0 } = req.query;
+
+  const products = await Product.findAndCountAll({
+    where: { status: 'approved' },
+    order: [['createdAt', 'DESC']],
+    limit: parseInt(limit as string),
+    offset: parseInt(offset as string),
+  });
+
+  res.success({
+    products: products.rows,
+    total: products.count,
+    limit: parseInt(limit as string),
+    offset: parseInt(offset as string),
+  }, 'Approved products retrieved successfully');
+});
+
+export const getPublicProductById = catchAsync(async (req: Request, res: Response) => {
+  const ProductIdParam = req.params.productId;
+  const productId = Array.isArray(ProductIdParam) ? ProductIdParam[0] : ProductIdParam;
+
+  const product = await Product.findByPk(productId);
+
+  if (!product) {
+    return res.error('Product not found', 404, 'PRODUCT_NOT_FOUND');
+  }
+
+  // Only return if product is approved
+  if (product.status !== 'approved') {
+    return res.error('Product not available', 404, 'PRODUCT_NOT_AVAILABLE');
+  }
+
+  res.success({ product }, 'Product retrieved successfully');
+});

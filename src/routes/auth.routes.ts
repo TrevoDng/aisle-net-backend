@@ -6,7 +6,8 @@ import {
   login,
   verifyEmail,
   validateSecretCode,
-  getMe
+  getMe,
+  updateProfile
 } from '../controllers/auth.controller';
 import { verifyUserToken, requireRole } from '../services/auth.service';
 
@@ -111,5 +112,9 @@ router.get(
 router.post('/test', (req, res) => {
   res.success({ test: true }, "Auth routes are working!");
 });
+
+
+// In auth.routes.ts - add this route
+router.put('/update-profile', verifyUserToken, updateProfile);
 
 export default router;

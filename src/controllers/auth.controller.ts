@@ -363,3 +363,24 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
     user: req.user
   }, 'User retrieved successfully');
 });
+
+// In auth.controller.ts - add this function
+export const updateProfile = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const { firstName, lastName, phone } = req.body;
+  
+  if (!user) {
+    return res.error('User not authenticated', 401, 'UNAUTHORIZED');
+  }
+  
+  // Update only allowed fields
+  await User.update(
+    { firstName, lastName, phone },
+    { where: { id: user.id } }
+  );
+  
+  // Fetch updated user
+  const updatedUser = await User.findByPk(user.id);
+  
+  res.success({ user: updatedUser }, 'Profile updated successfully');
+});
