@@ -10,26 +10,47 @@ import {
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct, 
-    getPublicApprovedProducts,
-    getPublicProductById
+    deleteProduct,
     } from '../controllers/product.controller';
 import { verifyUserToken, requireRole } from '../services/auth.service';
 
 const router = Router();
 
-// ==================== PUBLIC ROUTES (NO AUTH REQUIRED) ====================
-
-// Get approved products for public display (no authentication needed)
-// router.get('/public/approved', getPublicApprovedProducts);
-
-// Get single product by ID (public - only if approved)
-// router.get('/public/:productId', getPublicProductById);
-
-
 // ==================== PROTECTED ROUTES ====================
 
 // Create product (Employees and Admins)
+// src/routes/product.routes.ts
+router.post(
+  '/',
+  verifyUserToken,
+  [
+    body('category')
+      .isArray()
+      .withMessage('Category must be an array')
+      .notEmpty()
+      .withMessage('Category array cannot be empty')
+      .custom((value: string[]) => {
+        // Validate each item in the array
+        for (const item of value) {
+          if (typeof item !== 'string') {
+            throw new Error('Each category must be a string');
+          }
+          if (!item.match(/^[a-zA-Z0-9\s\-_/]+$/)) {
+            throw new Error('Invalid characters in category path');
+          }
+        }
+        return true;
+      }),
+    body('brand').notEmpty().withMessage('Brand is required'),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('description').notEmpty().withMessage('Description is required'),
+    body('longDescription').notEmpty().withMessage('Long description is required'),
+    body('price').isNumeric().withMessage('Valid price is required'),
+    body('imgSrc').isArray().withMessage('Images are required'),
+  ],
+  createProduct
+);
+/*
 router.post(
   '/',
   verifyUserToken,
@@ -45,6 +66,7 @@ router.post(
   ],
   createProduct
 );
+*/
 
 // Get my products (employee sees their own products)
 router.get('/my-products', verifyUserToken, getMyProducts);

@@ -4,8 +4,7 @@ import sequelize from '../config/database.config';
 
 export interface ProductAttributes {
   id: string;
-  mainType: string;
-  subType: string;
+  category: string[]; // Array of category path strings
   brand: string;
   title: string;
   description: string;
@@ -26,8 +25,7 @@ export interface ProductCreationAttributes extends Optional<ProductAttributes, '
 
 class Product extends Model<ProductAttributes, ProductCreationAttributes> implements ProductAttributes {
   declare id: string;
-  declare mainType: string;
-  declare subType: string;
+  declare category: string[];
   declare brand: string;
   declare title: string;
   declare description: string;
@@ -54,15 +52,12 @@ Product.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    mainType: {
-      type: DataTypes.STRING(100),
+    category: {
+      type: DataTypes.ARRAY(DataTypes.STRING), // Store array as JSON
       allowNull: false,
-      field: 'main_type',
-    },
-    subType: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      field: 'sub_type',
+      defaultValue: [],
+      field: 'category',
+      // PostgreSQL can also use DataTypes.ARRAY(DataTypes.STRING)
     },
     brand: {
       type: DataTypes.STRING(100),

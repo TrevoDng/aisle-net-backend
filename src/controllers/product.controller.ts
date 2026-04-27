@@ -283,8 +283,23 @@ export const getPublicApprovedProducts = catchAsync(async (req: Request, res: Re
     offset: parseInt(offset as string),
   });
 
+    // Transform price to string
+  const transformedProducts = products.rows.map(product => ({
+    id: product.id,
+    category: product.category,
+    brand: product.brand,
+    title: product.title,
+    description: product.description,
+    longDescription: product.longDescription,
+    price: product.price.toString(),
+    stockQuantity: product.stockQuantity,
+    imgSrc: product.imgSrc,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt
+  }));
+
   res.success({
-    products: products.rows,
+    products: transformedProducts,
     total: products.count,
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
@@ -306,5 +321,20 @@ export const getPublicProductById = catchAsync(async (req: Request, res: Respons
     return res.error('Product not available', 404, 'PRODUCT_NOT_AVAILABLE');
   }
 
-  res.success({ product }, 'Product retrieved successfully');
+  // Transform price to string
+  const transformedProduct = {
+    id: product.id,
+    category: product.category,
+    brand: product.brand,
+    title: product.title,
+    description: product.description,
+    longDescription: product.longDescription,
+    price: product.price.toString(),
+    stockQuantity: product.stockQuantity,
+    imgSrc: product.imgSrc,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt
+  };
+
+  res.success({ product: transformedProduct }, 'Product retrieved successfully');
 });

@@ -19,6 +19,7 @@ import productRoutes from './routes/product.routes';
 import suggestionRoutes from './routes/suggestion.routes';
 import enquiryRoutes from './routes/enquiry.routes';
 import publicRoutes from './routes/public.routes';
+import discountRoutes from './routes/discount.routes';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use(responseMiddleware);
 
 // ==================== PUBLIC ROUTES (NO AUTH) ====================
 app.use('/api/public', publicRoutes);
+app.use('/api/discounts', discountRoutes);
 console.log('✅ Public routes registered at /api/public');
 
 // Use process.cwd() to get the current working directory (project root)
