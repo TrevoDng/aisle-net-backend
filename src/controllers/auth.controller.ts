@@ -169,9 +169,9 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     await transaction.commit();
     
     // TODO: Send verification email when email service is configured
-    // if (verificationToken) {
-    //   await sendVerificationEmail(email, verificationToken, role.toLowerCase());
-    // }
+    if (verificationToken) {
+      await sendVerificationEmail(email, verificationToken, role.toLowerCase());
+    }
     
     // Prepare success message based on role
     const message = role === 'CLIENT' 
@@ -364,7 +364,7 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
   }, 'User retrieved successfully');
 });
 
-// In auth.controller.ts - add this function
+
 export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
   const { firstName, lastName, phone } = req.body;

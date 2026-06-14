@@ -15,9 +15,10 @@ const transporter = nodemailer.createTransport({
 // Send verification email after registration
 export const sendVerificationEmail = async (email: string, token: string, userType: string) => {
     const verificationUrl = `${process.env.APP_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${token}`;
+    const { SMTP_USER } = process.env;
     
     await transporter.sendMail({
-        from: '"Aisle-Net" <noreply@aisle-net.com>',
+        from: `"Aisle-Net" <${SMTP_USER}>`,
         to: email,
         subject: 'Verify Your Email Address',
         html: `
@@ -42,7 +43,7 @@ export const sendVerificationEmail = async (email: string, token: string, userTy
                         <p>Hello,</p>
                         <p>Thank you for registering with Aisle-Net. Please verify your email address by clicking the button below:</p>
                         <p style="text-align: center;">
-                            <a href="${verificationUrl}" class="button">Verify Email Address</a>
+                            <a href="${verificationUrl}" class="button" style="color:#fff;">Verify Email Address</a>
                         </p>
                         <p>Or copy and paste this link into your browser:</p>
                         <p><code>${verificationUrl}</code></p>
@@ -59,12 +60,14 @@ export const sendVerificationEmail = async (email: string, token: string, userTy
     });
 };
 
+// Send invitation email to employee with registration code
 export const sendInviteEmail = async (email: string, code: string, expiresAt: Date) => {
     const expiresFormatted = expiresAt.toLocaleString();
     const registerUrl = `${process.env.APP_URL || 'http://localhost:3000'}/register?code=${code}&type=employee`;
+    const { SMTP_USER } = process.env;
     
     await transporter.sendMail({
-        from: '"Aisle-Net Admin" <noreply@aisle-net.com>',
+        from: `"Aisle-Net Admin" <${SMTP_USER}>`,
         to: email,
         subject: 'Employee Registration Invitation',
         html: `
@@ -109,8 +112,10 @@ export const sendInviteEmail = async (email: string, code: string, expiresAt: Da
 };
 
 export const sendApprovalEmail = async (email: string, name: string) => {
+    const { SMTP_USER } = process.env;
+
     await transporter.sendMail({
-        from: '"Aisle-Net Admin" <noreply@aisle-net.com>',
+        from: `"Aisle-Net Admin" <${SMTP_USER}>`,
         to: email,
         subject: 'Account Approved!',
         html: `
@@ -149,8 +154,10 @@ export const sendApprovalEmail = async (email: string, name: string) => {
 };
 
 export const sendRejectionEmail = async (email: string, reason: string) => {
+    const { SMTP_USER } = process.env;
+
     await transporter.sendMail({
-        from: '"Aisle-Net Admin" <noreply@aisle-net.com>',
+        from: `"Aisle-Net Admin" <${SMTP_USER}>`,
         to: email,
         subject: 'Registration Update',
         html: `

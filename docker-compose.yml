@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aisle-net-postgres
+    networks:
+      - app-network
+    environment:
+      POSTGRES_DB: aisle_net_db
+      POSTGRES_USER: trevor
+      POSTGRES_PASSWORD: Trev@1684716
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trevor -d aisle_net_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: aisle-net-backend
+    networks:
+      - app-network
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=aisle_net_db
+      - DB_USER=trevor
+      - DB_PASSWORD=Trev@1684716
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - PORT=3000
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: /home/treor/smart-shopper
+      dockerfile: Dockerfile.simple
+    container_name: aisle-net-frontend
+    networks:
+      - app-network
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
