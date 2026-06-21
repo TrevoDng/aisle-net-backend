@@ -47,6 +47,27 @@ router.post(
     body('longDescription').notEmpty().withMessage('Long description is required'),
     body('price').isNumeric().withMessage('Valid price is required'),
     body('imgSrc').isArray().withMessage('Images are required'),
+    body('sizes')
+      .optional()
+      .isArray()
+      .withMessage('Sizes must be an array')
+      .custom((value: any[]) => {
+        for (const size of value) {
+          if (!size.code || typeof size.code !== 'string') {
+            throw new Error('Each size must have a code string');
+          }
+          if (!size.name || typeof size.name !== 'string') {
+            throw new Error('Each size must have a name string');
+          }
+          if (size.quantity === undefined || typeof size.quantity !== 'number' || size.quantity < 0) {
+            throw new Error('Each size must have a valid quantity number');
+          }
+          if (!size.type || !['string', 'number'].includes(size.type)) {
+            throw new Error('Each size must have a type: "string" or "number"');
+          }
+        }
+        return true;
+      }),
   ],
   createProduct
 );

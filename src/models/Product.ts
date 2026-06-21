@@ -2,6 +2,13 @@
 import { DataTypes, Model, type Optional } from 'sequelize';
 import sequelize from '../config/database.config';
 
+export interface Size {
+  code: string;
+  name: string;
+  type: "string" | "number";
+  quantity: number;
+}
+
 export interface ProductAttributes {
   id: string;
   category: string[]; // Array of category path strings
@@ -11,6 +18,7 @@ export interface ProductAttributes {
   longDescription: string;
   price: number;
   stockQuantity: number;
+  sizes: Size[];
   imgSrc: string[]; // Array of image URLs
   status: 'pending' | 'approved' | 'rejected' | 'deactivated';
   employeeId: string;
@@ -32,6 +40,7 @@ class Product extends Model<ProductAttributes, ProductCreationAttributes> implem
   declare longDescription: string;
   declare price: number;
   declare stockQuantity: number;
+  declare sizes: Size[];
   declare imgSrc: string[];
   declare status: 'pending' | 'approved' | 'rejected' | 'deactivated';
   declare employeeId: string;
@@ -84,6 +93,11 @@ Product.init(
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'stock_quantity',
+    },
+        sizes: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
     },
     imgSrc: {
       type: DataTypes.JSON,

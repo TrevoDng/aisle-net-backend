@@ -293,6 +293,7 @@ export const getPublicApprovedProducts = catchAsync(async (req: Request, res: Re
     longDescription: product.longDescription,
     price: product.price.toString(),
     stockQuantity: product.stockQuantity,
+    sizes: product.sizes || [],
     imgSrc: product.imgSrc,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt
@@ -331,6 +332,7 @@ export const getPublicProductById = catchAsync(async (req: Request, res: Respons
     longDescription: product.longDescription,
     price: product.price.toString(),
     stockQuantity: product.stockQuantity,
+    sizes: product.sizes || [],
     imgSrc: product.imgSrc,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt
