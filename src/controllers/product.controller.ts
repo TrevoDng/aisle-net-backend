@@ -340,3 +340,42 @@ export const getPublicProductById = catchAsync(async (req: Request, res: Respons
 
   res.success({ product: transformedProduct }, 'Product retrieved successfully');
 });
+
+// ==================== ADMIN PERFORMANCE CONTROLLERS ====================
+
+export const getEmployeesPerformance = catchAsync(async (req: Request, res: Response) => {
+  const { limit = 100, offset = 0 } = req.query;
+
+  // Get all products with their employee info
+  const products = await Product.findAll({
+    where: { status: 'approved' },
+    attributes: [
+      'id',
+      'title',
+      'stockQuantity',
+      'employeeId',
+      'employeeName',
+      'employeeEmail',
+      'status'
+    ],
+    order: [['employeeName', 'ASC']],
+    limit: parseInt(limit as string),
+    offset: parseInt(offset as string),
+  });
+
+  // Transform data to include sold count (you might need to calculate this from orders)
+  // For now, we'll use a placeholder soldCount
+  const performanceData = products.map(product => ({
+    id: product.id,
+    employeeId: product.employeeId || 'unknown',
+    employeeName: product.employeeName || 'Unknown',
+    employeeEmail: product.employeeEmail || 'unknown@example.com',
+    productId: product.id,
+    productTitle: product.title,
+    stockQuantity: product.stockQuantity || 0,
+    soldCount: 0, // This should come from order data in production
+    status: product.status
+  }));
+
+  res.success(performanceData, 'Employee performance data retrieved successfully');
+});

@@ -11,6 +11,7 @@ import {
     getProductById,
     updateProduct,
     deleteProduct,
+    getEmployeesPerformance,
     } from '../controllers/product.controller';
 import { verifyUserToken, requireRole } from '../services/auth.service';
 
@@ -105,6 +106,13 @@ router.delete('/:productId', verifyUserToken, deleteProduct);
 
 // Get all products (admin)
 router.get('/admin/all', verifyUserToken, requireRole('ADMIN'), getAllProducts);
+// Get employee performance data (admin)
+router.get(
+  '/admin/employees-performance',
+  verifyUserToken,
+  requireRole('ADMIN'),
+  getEmployeesPerformance
+);
 
 // Get pending products (admin)
 router.get('/admin/pending', verifyUserToken, requireRole('ADMIN'), getPendingProducts);

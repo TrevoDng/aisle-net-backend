@@ -274,6 +274,85 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const { token } = req.query;
   
   if (!token || typeof token !== 'string') {
+    // Check if it's an API request or browser request
+    if (req.headers.accept?.includes('application/json')) {
+      return res.error('Invalid verification token', 400, 'INVALID_TOKEN');
+    }
+    return res.redirect(`${process.env.FRONTEND_URL}/verify-email?reason=invalid-token`);
+  }
+  
+  try {
+    const user = await User.findOne({
+      where: {
+        verificationToken: token,
+        verificationTokenExpires: { [Op.gt]: new Date() },
+        status: 'pending_email',
+      }
+    });
+    
+    if (!user) {
+      if (req.headers.accept?.includes('application/json')) {
+        return res.error('Invalid or expired verification token', 400, 'INVALID_TOKEN');
+      }
+      return res.redirect(`${process.env.FRONTEND_URL}/verify-email?reason=invalid-token`);
+    }
+    
+    let newStatus: 'pending_approval' | 'active';
+    let message: string;
+    
+    if (user.role === 'EMPLOYEE') {
+      newStatus = 'pending_approval';
+      message = 'Email verified! Your registration is now pending admin approval. You will be notified once approved.';
+    } else {
+      newStatus = 'active';
+      message = 'Email verified! Your account is now active. You can now log in.';
+    }
+    
+    await user.update({
+      status: newStatus,
+      verificationToken: undefined,
+      verificationTokenExpires: undefined,
+    });
+    
+    await AuditLog.create({
+      eventType: 'EMAIL_VERIFIED',
+      severity: 'INFO',
+      userId: user.id,
+      email: user.email,
+      details: { role: user.role },
+    });
+    
+    // For API requests, return JSON response
+    if (req.headers.accept?.includes('application/json')) {
+      return res.success({
+        verified: true,
+        message,
+        role: user.role
+      }, 'Email verified successfully');
+    }
+    
+    // For browser requests, redirect to frontend verification page
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    return res.redirect(
+      `${frontendUrl}/verify-email?verified=true&message=${encodeURIComponent(message)}&role=${user.role}`
+    );
+    
+  } catch (error) {
+    logger.error('Email verification failed', { error });
+    
+    if (req.headers.accept?.includes('application/json')) {
+      return res.error('Verification failed', 500, 'VERIFICATION_ERROR');
+    }
+    
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    return res.redirect(`${frontendUrl}/verify-email?reason=error`);
+  }
+});
+
+/*export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
+  const { token } = req.query;
+  
+  if (!token || typeof token !== 'string') {
     return res.redirect('/verify-failed?reason=invalid-token');
   }
   
@@ -322,7 +401,7 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     res.redirect('/verify-failed?reason=error');
   }
 });
-
+*/
 // ==================== VALIDATE SECRET CODE CONTROLLER ====================
 export const validateSecretCode = catchAsync(async (req: Request, res: Response) => {
   // Check for validation errors
