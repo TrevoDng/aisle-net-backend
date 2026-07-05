@@ -2,8 +2,14 @@ node_modules
 dist
 npm-debug.log
 .env
+.env.docker
 .git
 .gitignore
 Dockerfile
 .dockerignore
 *.tsbuildinfo
+uploads
+coverage
+.vscode
+*.log
+.DS_Store

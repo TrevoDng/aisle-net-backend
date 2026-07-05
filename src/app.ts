@@ -2,7 +2,7 @@
 //import './types/express-augmentation';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+//import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -20,8 +20,12 @@ import suggestionRoutes from './routes/suggestion.routes';
 import enquiryRoutes from './routes/enquiry.routes';
 import publicRoutes from './routes/public.routes';
 import discountRoutes from './routes/discount.routes';
+import paymentRoutes from './routes/payment.routes';
+import { OzowController } from './controllers/ozow.controller';
+import { YocoController } from './controllers/yoco.controller';
+import { PayfastController } from './controllers/payfast.controller';
 
-dotenv.config();
+//dotenv.config();
 
 const app = express();
 
@@ -39,6 +43,22 @@ const limiter = rateLimit({
     error: { code: 'TOO_MANY_REQUESTS', message: 'Too many requests, please try again later.' }
   }
 });
+
+// ⚠️ IMPORTANT: Special webhook body parsers (MUST be before express.json())
+// These need raw body for signature verification
+app.use('/api/webhooks/yoco', express.json({
+  verify: (req: any, res, buf) => {
+    req.rawBody = buf; // Store raw body for Yoco signature verification
+  }
+}));
+
+app.use('/api/webhooks/payfast', express.urlencoded({ extended: true }));
+app.use('/api/webhooks/ozow', express.urlencoded({ extended: true }));
+
+// Controllers
+const payfastController = new PayfastController();
+const yocoController = new YocoController();
+const ozowController = new OzowController();
 
 app.use(cors());
 app.use(express.json());
@@ -75,6 +95,18 @@ app.use('/api', uploadRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/suggestions', suggestionRoutes);
+app.use('/api/payments', paymentRoutes);
+
+// Payments Routes
+app.post('/api/payfast/initiate', payfastController.initiatePayment);
+app.post('/api/webhooks/payfast', payfastController.handleWebhook);
+
+app.post('/api/yoco/create-payment', yocoController.createPaymentIntent);
+app.post('/api/webhooks/yoco', yocoController.handleWebhook);
+
+app.post('/api/ozow/initiate', ozowController.initiatePayment);
+app.post('/api/webhooks/ozow', ozowController.handleWebhook);
+app.get('/api/ozow/return', ozowController.handleReturn);
 
 
 // Health check

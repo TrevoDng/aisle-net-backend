@@ -30,8 +30,12 @@ RUN npm ci --only=production
 # Copy compiled JavaScript from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy environment files
+COPY .env* ./
+#COPY .env.docker ./.env.docker
+
 # Expose port
-EXPOSE 3000
+EXPOSE 3001
 
 # Command to run compiled server
 CMD ["node", "dist/server.js"]

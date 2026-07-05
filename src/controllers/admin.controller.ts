@@ -9,7 +9,7 @@ import AuditLog from '../models/AuditLog';
 import { generateSecretCode as generateCode } from '../utils/token.utils';
 import logger from '../utils/logger';
 import catchAsync from '../utils/catchAsync';
-import { sendInviteEmail } from '@/services/email.service';
+import { sendInviteEmail } from '../services/email.service';
 
 export class AdminController {
 

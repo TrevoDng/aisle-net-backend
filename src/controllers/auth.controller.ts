@@ -239,6 +239,23 @@ export const login = catchAsync(async (req: Request, res: Response) => {
         return res.error(`Account status: ${user.status}. Contact HR.`, 403, 'ACCOUNT_INACTIVE');
       }
     }
+
+        // Also for CLIENT role:
+    if (user.role === 'CLIENT' && user.status !== 'active') {
+      // Check if it's pending_email
+      if (user.status === 'pending_email') {
+        return res.error(
+          'Please verify your email before logging in.', 
+          403, 
+          'EMAIL_NOT_VERIFIED'
+        );
+      }
+      return res.error(
+        'Account is not active. Please contact support.', 
+        403, 
+        'ACCOUNT_INACTIVE'
+      );
+    }
     
     // Update last login
     await user.update({ lastLogin: new Date() });
@@ -278,7 +295,8 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     if (req.headers.accept?.includes('application/json')) {
       return res.error('Invalid verification token', 400, 'INVALID_TOKEN');
     }
-    return res.redirect(`${process.env.FRONTEND_URL}/verify-email?reason=invalid-token`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}/verify-email?reason=invalid-token`);
   }
   
   try {
@@ -347,6 +365,70 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     return res.redirect(`${frontendUrl}/verify-email?reason=error`);
   }
+});
+
+// ==================== RESEND VERIFICATION EMAIL CONTROLLER ====================
+export const resendVerification = catchAsync(async (req: Request, res: Response) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.error('Validation failed', 400, 'VALIDATION_ERROR', { errors: errors.array() });
+  }
+
+  const { email } = req.body;
+
+  if (!email) {
+    return res.error('Email is required', 400, 'MISSING_EMAIL');
+  }
+
+  // Find user by email
+  const user = await User.findOne({ where: { email } });
+
+  if (!user) {
+    return res.error('User not found with this email', 404, 'USER_NOT_FOUND');
+  }
+
+  // Check if user is already verified
+  if (user.status === 'active') {
+    return res.error('This email is already verified. Please login.', 400, 'ALREADY_VERIFIED');
+  }
+
+  // Check if user is in pending_email state
+  if (user.status !== 'pending_email') {
+    return res.error(`Account is ${user.status}. Please contact support.`, 400, 'INVALID_STATUS');
+  }
+
+  // Generate new verification token
+  const verificationToken = generateVerificationToken();
+  const tokenExpires = getTokenExpiry(24); // 24 hours
+
+  // Update user with new token
+  await user.update({
+    verificationToken: verificationToken,
+    verificationTokenExpires: tokenExpires,
+  });
+
+  // Send verification email
+  await sendVerificationEmail(email, verificationToken, user.role.toLowerCase());
+
+  // Log the action
+  await AuditLog.create({
+    eventType: 'VERIFICATION_RESENT',
+    severity: 'INFO',
+    userId: user.id,
+    email: user.email,
+    details: {
+      userRole: user.role,
+      ipAddress: req.ip,
+    },
+  });
+
+  logger.info(`Verification email resent to ${email}`);
+
+  res.success({
+    email: user.email,
+    message: 'Verification email has been resent. Please check your inbox.'
+  }, 'Verification email resent successfully');
 });
 
 /*export const verifyEmail = catchAsync(async (req: Request, res: Response) => {

@@ -7,7 +7,8 @@ import {
   verifyEmail,
   validateSecretCode,
   getMe,
-  updateProfile
+  updateProfile,
+  resendVerification
 } from '../controllers/auth.controller';
 import { verifyUserToken, requireRole } from '../services/auth.service';
 
@@ -89,6 +90,15 @@ router.get(
       }
     }, 'Employee access granted');
   }
+);
+
+// Resend Verification Email
+router.post(
+  '/resend-verification',
+  [
+    body('email').isEmail().withMessage('Valid email is required'),
+  ],
+  resendVerification
 );
 
 // Example: Customer-only route
