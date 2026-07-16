@@ -16,6 +16,9 @@ export class YocoController {
         return res.status(400).json({ error: 'Amount is required' });
       }
 
+      const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+      const backendUrl = req.backendUrl || process.env.APP_URL || `http://${req.get('host')}`;
+
       // Convert amount to cents
       const amountInCents = Math.round(amount * 100);
 
@@ -30,7 +33,11 @@ export class YocoController {
             currency: currency,
             customerEmail: metadata?.email || 'unknown@example.com',
             status: 'PENDING',
-            metadata: metadata,
+            metadata: {
+              ...metadata,
+              frontendUrl,
+              backendUrl,
+            },
           });
 
           // Create Yoco payment intent
@@ -38,7 +45,13 @@ export class YocoController {
             {
               amount: amountInCents,
               currency,
-              metadata: { ...metadata, orderId: order.id, orderNumber: order.orderNumber },
+              metadata: { 
+                ...metadata, 
+                orderId: order.id, 
+                orderNumber: order.orderNumber,
+                frontendUrl, 
+                backendUrl,
+              },
             },
             idempotencyKey
           );

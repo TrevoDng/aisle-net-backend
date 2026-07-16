@@ -47,7 +47,10 @@ export class PayfastService {
       : 'https://www.payfast.co.za';
   }
 
-  generatePaymentForm(data: PayfastPaymentData): {
+  generatePaymentForm(
+    data: PayfastPaymentData,
+    frontendUrl: string,
+    backendUrl: string): {
     url: string;
     fields: Record<string, string>;
   } {
@@ -58,9 +61,9 @@ export class PayfastService {
       item_name: data.item_name,
       email_address: data.email_address,
       m_payment_id: data.m_payment_id,
-      return_url: process.env.SUCCESS_URL!,
-      cancel_url: process.env.CANCEL_URL!,
-      notify_url: `${process.env.APP_URL}/api/webhooks/payfast`,
+      return_url: `${frontendUrl}/payment/success`,
+      cancel_url: `${frontendUrl}/payment/cancel`,
+      notify_url: `${backendUrl}/api/webhooks/payfast`,
     };
 
     if (data.item_description) fields.item_description = data.item_description;

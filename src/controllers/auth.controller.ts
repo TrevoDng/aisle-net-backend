@@ -115,6 +115,8 @@ export const register = catchAsync(async (req: Request, res: Response) => {
       requiresEmailVerification = true;
       requiresAdminApproval = true;
     }
+
+    const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
     
     // Generate email verification token for employees
     let verificationToken = undefined;
@@ -170,7 +172,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     
     // TODO: Send verification email when email service is configured
     if (verificationToken) {
-      await sendVerificationEmail(email, verificationToken, role.toLowerCase());
+      await sendVerificationEmail(email, verificationToken, role.toLowerCase(), frontendUrl);
     }
     
     // Prepare success message based on role
@@ -289,13 +291,15 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 // ==================== EMAIL VERIFICATION CONTROLLER ====================
 export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const { token } = req.query;
+
+  const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
   
   if (!token || typeof token !== 'string') {
     // Check if it's an API request or browser request
     if (req.headers.accept?.includes('application/json')) {
       return res.error('Invalid verification token', 400, 'INVALID_TOKEN');
     }
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    //const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return res.redirect(`${frontendUrl}/verify-email?reason=invalid-token`);
   }
   
@@ -350,7 +354,7 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     }
     
     // For browser requests, redirect to frontend verification page
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    //const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     return res.redirect(
       `${frontendUrl}/verify-email?verified=true&message=${encodeURIComponent(message)}&role=${user.role}`
     );
@@ -362,7 +366,7 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
       return res.error('Verification failed', 500, 'VERIFICATION_ERROR');
     }
     
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    //const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     return res.redirect(`${frontendUrl}/verify-email?reason=error`);
   }
 });
@@ -408,9 +412,11 @@ export const resendVerification = catchAsync(async (req: Request, res: Response)
     verificationTokenExpires: tokenExpires,
   });
 
-  // Send verification email
-  await sendVerificationEmail(email, verificationToken, user.role.toLowerCase());
+  const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
 
+  // Send verification email
+  await sendVerificationEmail(email, verificationToken, user.role.toLowerCase(), frontendUrl);
+   //console.log("frontendUrl: ", frontendUrl);
   // Log the action
   await AuditLog.create({
     eventType: 'VERIFICATION_RESENT',

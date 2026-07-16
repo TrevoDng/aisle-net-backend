@@ -16,6 +16,9 @@ export class OzowController {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+      const backendUrl = req.backendUrl || process.env.APP_URL || `http://${req.get('host')}`;
+
       const result = await this.idempotency.getOrProcess(
         idempotencyKey,
         async () => {
@@ -27,6 +30,10 @@ export class OzowController {
             customerEmail,
             customerName,
             status: 'PENDING',
+            metadata: {
+              frontendUrl,
+              backendUrl,
+            },
           });
 
           // Generate Ozow payment request
@@ -35,6 +42,8 @@ export class OzowController {
             transactionReference: order.orderNumber,
             bankReference: `PAY-${order.orderNumber}`,
             customer: customerName || customerEmail,
+            frontendUrl,
+            backendUrl,
           });
 
           return {

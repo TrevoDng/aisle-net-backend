@@ -71,7 +71,7 @@ services:
       - OZOW_PRIVATE_KEY=${OZOW_PRIVATE_KEY}
       - OZOW_API_KEY=${OZOW_API_KEY}
       - APP_URL=http://localhost:3001
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=http://localhost
       - SUCCESS_URL=http://localhost:3000/payment/success
       - CANCEL_URL=http://localhost:3000/payment/cancel
       - OZOW_NOTIFY_URL=http://localhost:3001/api/webhooks/ozow

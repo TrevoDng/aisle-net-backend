@@ -17,6 +17,9 @@ export class PayfastController {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+      const backendUrl = req.backendUrl || process.env.APP_URL || `http://${req.get('host')}`;
+
       // Use idempotency
       const result = await this.idempotency.getOrProcess(
         idempotencyKey,
@@ -38,7 +41,9 @@ export class PayfastController {
             m_payment_id: order.orderNumber,
             name_first: firstName || '',
             name_last: lastName || '',
-          });
+          },
+          frontendUrl,
+          backendUrl);
 
           return {
             orderId: order.id,

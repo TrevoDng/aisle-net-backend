@@ -73,6 +73,8 @@ export class OzowService {
     transactionReference: string;
     bankReference: string;
     customer: string;
+    frontendUrl: string;
+    backendUrl: string;
   }): OzowPaymentRequest {
     const baseParams = {
       SiteCode: this.siteCode,
@@ -81,10 +83,10 @@ export class OzowService {
       BankReference: data.bankReference,
       CurrencyCode: 'ZAR' as const,
       CountryCode: 'ZA' as const,
-      CancelUrl: process.env.CANCEL_URL!,
-      ErrorUrl: `${process.env.APP_URL}/payment/error`,
-      SuccessUrl: process.env.SUCCESS_URL!,
-      NotifyUrl: process.env.OZOW_NOTIFY_URL!,
+      CancelUrl: `${data.frontendUrl}/payment/cancel`,
+      ErrorUrl: `${data.frontendUrl}/payment/error`,
+      SuccessUrl: `${data.frontendUrl}/payment/success`,
+      NotifyUrl: `${data.backendUrl}/api/webhooks/ozow`,
       IsTest: this.isSandbox,
       Customer: data.customer,
     };

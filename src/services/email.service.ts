@@ -13,8 +13,10 @@ const transporter = nodemailer.createTransport({
 });
 
 // Send verification email after registration
-export const sendVerificationEmail = async (email: string, token: string, userType: string) => {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/api/auth/verify-email?token=${token}`;
+export const sendVerificationEmail = async (email: string, token: string, userType: string, frontendUrl?: string) => {
+    const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
+    //const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
     const { SMTP_USER } = process.env;
     
     await transporter.sendMail({
@@ -61,9 +63,11 @@ export const sendVerificationEmail = async (email: string, token: string, userTy
 };
 
 // Send invitation email to employee with registration code
-export const sendInviteEmail = async (email: string, code: string, expiresAt: Date) => {
+export const sendInviteEmail = async (email: string, code: string, expiresAt: Date, frontendUrl?: string) => {
     const expiresFormatted = expiresAt.toLocaleString();
-    const registerUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/register?code=${code}&type=employee`;
+    const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const registerUrl = `${baseUrl}/register?code=${code}&type=employee`;
+    //const registerUrl = `${process.env.FRONTEND_URL || 'http://localhost'}/register?code=${code}&type=employee`;
     const { SMTP_USER } = process.env;
     
     await transporter.sendMail({

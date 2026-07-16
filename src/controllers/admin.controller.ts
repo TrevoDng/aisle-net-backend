@@ -161,6 +161,8 @@ generateSecretCode = catchAsync(async (req: Request, res: Response) => {
 
   const { expiresInHours = 24, employeeEmail } = req.body;
   const adminUser = req.user;
+  
+  const frontendUrl = req.frontendUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
 
   // VALIDATE: employeeEmail is required
   if (!employeeEmail || !employeeEmail.trim()) {
@@ -228,7 +230,7 @@ generateSecretCode = catchAsync(async (req: Request, res: Response) => {
     assignedTo: employeeEmail
   }, 'Secret code generated successfully');
   
-  sendInviteEmail(employeeEmail, code, expiresAt).catch(error => {
+  sendInviteEmail(employeeEmail, code, expiresAt, frontendUrl).catch(error => {
     logger.error(`Failed to send invite email to ${employeeEmail} for code ${code}: ${error.message}`);
   });
 });

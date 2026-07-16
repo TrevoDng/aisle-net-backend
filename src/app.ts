@@ -24,6 +24,7 @@ import paymentRoutes from './routes/payment.routes';
 import { OzowController } from './controllers/ozow.controller';
 import { YocoController } from './controllers/yoco.controller';
 import { PayfastController } from './controllers/payfast.controller';
+import { detectFrontendUrl, getBackendUrl } from './middleware/url.middleware';
 
 //dotenv.config();
 
@@ -33,6 +34,9 @@ const app = express();
 app.use(helmet());
 app.use(compression());
 app.use(morgan('dev'));
+
+//app.use(detectFrontendUrl); // Middleware to detect frontend URL
+//app.use(getBackendUrl); // Middleware to detect backend URL
 
 // Rate limiting
 const limiter = rateLimit({
@@ -69,6 +73,12 @@ app.use(responseMiddleware);
 
 
 // Routes
+app.use('/api/auth', detectFrontendUrl);        // Registration, login, verification
+app.use('/api/admin', detectFrontendUrl);       // Admin invites
+app.use('/api/payments', detectFrontendUrl);    // Payment redirects
+app.use('/api/payfast', detectFrontendUrl);     // PayFast
+app.use('/api/yoco', detectFrontendUrl);        // Yoco
+app.use('/api/ozow', detectFrontendUrl);
 
 // ==================== PUBLIC ROUTES (NO AUTH) ====================
 app.use('/api/public', publicRoutes);
